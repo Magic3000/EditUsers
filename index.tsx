@@ -8,10 +8,9 @@ import { classNameFactory } from "@utils/css";
 import { getIntlMessage } from "@utils/discord";
 import { openModal } from "@utils/modal";
 import definePlugin, { OptionType } from "@utils/types";
-import { Channel, Message, Permissions, User } from "@vencord/discord-types";
+import { Channel, User } from "@vencord/discord-types";
 import { extractAndLoadChunksLazy, findLazy } from "@webpack";
-import { ChannelStore, Menu, SelectedChannelStore, UserStore, React, UserProfileStore, IconUtils } from "@webpack/common";
-import { jsx, jsxs } from "react/jsx-runtime";
+import { ChannelStore, Menu, SelectedChannelStore, UserStore, React, UserProfileStore } from "@webpack/common";
 import { SetUserModal } from "./SetUserModal";
 import { Button } from "@components/Button";
 import { FluxDispatcher } from "@webpack/common";
@@ -27,16 +26,6 @@ export async function reloadProfiles() {
 const requireSettingsMenu = extractAndLoadChunksLazy(['type:"USER_SETTINGS_MODAL_OPEN"']);
 
 const cl = classNameFactory("vc-mut-");
-
-export type ITag = {
-    name: string;
-    displayName: string;
-    description: string;
-} & ({
-    permissions: Permissions[];
-} | {
-    condition?(message: Message | null, user: User, channel: Channel): boolean;
-});
 
 export const Tag = findLazy(m => m.Types?.[0] === "BOT") as React.ComponentType<{ type?: number | null, className?: string, useRemSizes?: boolean; }> & { Types: Record<string, number>; };
 
@@ -117,44 +106,6 @@ export function getCustomNameString(id: string | undefined): string | undefined 
     return profiles[id]?.nickname;
 }
 
-export function getStableRandFromId(id: string, max = 3000) {
-    if (!id) return;
-    let hash = 0;
-
-    for (let i = 0; i < id.length; i++) {
-        hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
-    }
-
-    return Math.abs(hash) % max + 1;
-}
-
-function hslToHex(h: number, s: number, l: number) {
-    s /= 100;
-    l /= 100;
-
-    const k = (n: number) => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = (n: number) =>
-        l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-
-    const toHex = (x: number) =>
-        Math.round(x * 255).toString(16).padStart(2, "0");
-
-    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
-}
-
-export function getColorFromId(id: string, speed = 0.005) {
-    if (!id) return;
-
-    const offset = getStableRandFromId(id, 360) ?? 0;
-
-    const timeHue = (Date.now() * speed) % 360;
-
-    const hue = (timeHue + offset) % 360;
-
-    return hslToHex(hue, 65, 55);
-}
-
 function normalizeAvatarUrl(url: string) {
     if (!url) return url;
 
@@ -220,12 +171,11 @@ export function patchUserProfileObject(this: any, userProfile: any) {
     return newUserProfileObject;
 }
 
-export function patchUserObject(this: any, user: any) {
+export function patchUserObject(user: any) {
     const id = user?.id;
     if (!id) return user;
 
     const newUserObject = new (user.constructor as any)(user);
-    const origUser = this.origGetUser(id);;
 
     const profile = profiles[id];
     if (profile) {
@@ -438,20 +388,17 @@ export default definePlugin({
     requireSettingsMenu,
     getCustomColorString,
     getCustomNameString,
-    getStableRandFromId,
-    getColorFromId,
     patchUserObject,
     patchUserProfileObject,
     origGetUserProfile: null as any,
-    origGetUser: null as any,
     _guildTagTemplate: null as any,
 
     async start() {
         await reloadProfiles();
 
-        this.origGetUser = UserStore.getUser;
+        let origGetUser = UserStore.getUser;
         UserStore.getUser = (id: string) => {
-            const user = this.origGetUser(id);
+            const user = origGetUser(id);
             return this.patchUserObject(user);
         };
 
@@ -606,7 +553,6 @@ export default definePlugin({
 
     wrapMessageColorProps(colorProps: { nick: string, colorString: string, colorStrings?: Record<"primaryColor" | "secondaryColor" | "tertiaryColor", string>; }, context: any) {
         try {
-            const globalName = context?.message?.author?.globalName;
             const channelId = SelectedChannelStore.getChannelId();
             const channel = ChannelStore.getChannel(channelId);
             const isDM = channel.isDM() || channel.isMultiUserDM();
@@ -640,7 +586,7 @@ export default definePlugin({
         return colorString ?? "inherit";
     },
 
-    patchClanBadge(context: any, guildId: string, badgeHash: string, size: number) {
+    patchClanBadge(guildId: string, badgeHash: string, size: number) {
         try {
             if (guildId.includes('http')) {
                 return normalizeAvatarUrl(guildId);
@@ -671,48 +617,9 @@ export default definePlugin({
             let props = [];
             if (node.type == Symbol.for("react.fragment")) {
                 props = node.props.children[0].props;
-                /*const guildTag = node.props.children?.[1];
-
-                if (guildTag) {
-                    if (!this._guildTagTemplate) {
-                        this._guildTagTemplate = guildTag;
-                    }
-                    if (profile?.tagText) {
-                        guildTag.props.primaryGuild.tag = profile?.tagText;
-                    }
-                    if (profile?.tagBadgeUrl) {
-                        guildTag.props.primaryGuild.identityGuildId = profile?.tagBadgeUrl;
-                    }
-                }*/
             }
             else {
-                /*if (profile?.tagText) {
-                    const nameNode = node;
-
-                    let tagNode = null;
-                    if (this._guildTagTemplate && profile?.tagText) {
-                        tagNode = React.cloneElement(this._guildTagTemplate, {
-                            primaryGuild: {
-                                identityGuildId: profile?.tagBadgeUrl,
-                                identityEnabled: true,
-                                tag: profile?.tagText,
-                                badge: ""
-                            },
-                            userId: id
-                        });
-                    }
-
-                    node = React.createElement(
-                        React.Fragment,
-                        null,
-                        nameNode,
-                        tagNode
-                    );
-
-                    props = nameNode.props;
-                } else {*/
                 props = node.props;
-                //}
             }
 
             if (customName != '')
