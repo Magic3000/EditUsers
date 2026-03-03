@@ -391,7 +391,6 @@ export default definePlugin({
     patchUserObject,
     patchUserProfileObject,
     origGetUserProfile: null as any,
-    _guildTagTemplate: null as any,
 
     async start() {
         await reloadProfiles();
@@ -473,13 +472,6 @@ export default definePlugin({
             replacement: {
                 match: /(name:\(0,.\.jsx\)\(\i\.\i,\{[^]*?children:)(\i)/,
                 replace: "$1$self.patchDmName(arguments[0], $2)"
-            }
-        },
-        {
-            find: "clan-badges/",
-            replacement: {
-                match: /return`https:\/\/\$\{r\}\/clan-badges\/\$\{e\}\/\$\{t\}\.png\?size=\$\{i\}`/,
-                replace: "return $self.patchClanBadge(arguments[0],e,t,i)"
             }
         },
         {
@@ -584,18 +576,6 @@ export default definePlugin({
         const colorString = getCustomColorString(id, true);
 
         return colorString ?? "inherit";
-    },
-
-    patchClanBadge(guildId: string, badgeHash: string, size: number) {
-        try {
-            if (guildId.includes('http')) {
-                return normalizeAvatarUrl(guildId);
-            }
-            return `https://cdn.discordapp.com/clan-badges/${guildId}/${badgeHash}.png?size=${size}`;
-        } catch (e) {
-            console.error("patchClanBadge failed", e);
-            return null;
-        }
     },
 
     getCustomBannerUrl(userId: string) {
