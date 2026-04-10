@@ -1469,11 +1469,11 @@ export default definePlugin({
             },
         },
         {
-            // Replace names in DMs list.
+            // Replace names in DMs list, need to fix 'a' variable every discord update.
             find: "ImpressionNames.DM_LIST_RIGHT_CLICK_MENU_SHOWN",
             replacement: {
                 match: /(=\s*)(\(0,.\.jsx[s]?\)\(.\..,\{)/,
-                replace: "$1$self.getTypingMemberListProfilesReactionsVoiceNameElement2({user:r,type:\"DmMembersList\"})??$2"
+                replace: "$1$self.getTypingMemberListProfilesReactionsVoiceNameElement2({user:a,type:\"DmMembersList\"})??$2"
             },
             predicate: () => settings.store.additionalDMListMembersCustomization
         },
