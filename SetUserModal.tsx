@@ -29,7 +29,8 @@ import {
 import { FormSwitch } from "@components/FormSwitch";
 import { Button } from "@components/Button";
 import { findComponentByCodeLazy } from "@webpack";
-import { Slider } from "@plugins/componentsDev/components";
+import { Slider } from "@webpack/common";
+//import { Slider } from "@plugins/componentsdev/components";
 import { Settings } from "@api/Settings";
 
 const ManaButton = findComponentByCodeLazy('"data-mana-component":"button"') as React.ComponentType<{

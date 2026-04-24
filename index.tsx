@@ -34,7 +34,7 @@ const requireSettingsMenu = extractAndLoadChunksLazy(['type:"USER_SETTINGS_MODAL
 type colorStringsType = { primaryColor: string | null, secondaryColor: string | null, tertiaryColor: string | null; } | null | undefined;
 const UserStore = findStoreLazy("UserStore");
 const wrapEmojis = findByCodeLazy("lastIndex;return");
-const adjustColor = findByCodeLazy("light1", "dark1", "toonStroke");
+const adjustColor = findByCodeLazy("light1", '.get("hsl.s"))');
 const AccessibilityStore = findStoreLazy("AccessibilityStore");
 
 const roleColorPattern = /^role((?:\+|-)\d{0,4})?$/iu;
@@ -1336,7 +1336,10 @@ function getMentionNameElement(props: mentionProps): JSX.Element | null {
 export default definePlugin({
     name: "EditUsers",
     description: "Allows you to locally edit users like their color, displayName, avatar, tag, profile color and other stuff",
-    authors: [Devs.Magic3000],
+    authors: [{
+        name: "Magic3000",
+        id: 208453481604972546n
+    }],
     contextMenus: {
         "user-context": userContextMenuPatch,
         "gdm-context": channelContextMenuPatch,
@@ -1469,11 +1472,10 @@ export default definePlugin({
             },
         },
         {
-            // Replace names in DMs list, need to fix 'a' variable every discord update.
-            find: "ImpressionNames.DM_LIST_RIGHT_CLICK_MENU_SHOWN",
+            find: "userName:eY,displayNameStyles",
             replacement: {
-                match: /(=\s*)(\(0,.\.jsx[s]?\)\(.\..,\{)/,
-                replace: "$1$self.getTypingMemberListProfilesReactionsVoiceNameElement2({user:a,type:\"DmMembersList\"})??$2"
+                match: /\(0,(\w+)\.jsx\)\((\w+)\.A,\{userName:eY,displayNameStyles:r\?\./,
+                replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement2({...arguments[0],type:\"DmMembersList\"}) ?? (0,$1.jsx)($2.A,{userName:eY,displayNameStyles:r?."
             },
             predicate: () => settings.store.additionalDMListMembersCustomization
         },
@@ -1499,7 +1501,7 @@ export default definePlugin({
             // because the name is the same as the username.
             find: "location:\"DiscordTag\"});",
             replacement: {
-                match: /(?<=forceUsername:(\i),.{0,550}?displayNameStyles:)\i!==\i\?(\i.displayNameStyles):null/,
+                match: /(?<=,forceUsername:(\i),.*?displayNameStyles:)\i!==\i\?(\i.displayNameStyles):null/,
                 replace: "!$1?$2:null"
             },
         },
@@ -1516,7 +1518,7 @@ export default definePlugin({
             // Attach the group ID to their messages to allow animating gradients within a group.
             find: "CUSTOM_GIFT?\"\":",
             replacement: {
-                match: /(isHovered:(\i).{0,1300}?\(\i,\i,\i\);)(let \i=\i.id===\i)/,
+                match: /(isHovered:(\i).{0,1300})(let \i=\i.id===\i,\i=)/,
                 replace: "$1arguments[0].message.showMeYourNameGroupId=!!arguments[0].groupId?`g-${arguments[0].groupId}`:null;$self.handleHoveringMessage(arguments[0].message,$2);$3"
             },
         },
@@ -1545,13 +1547,12 @@ export default definePlugin({
             }
         },
         {
-            // Replace element in the server member list.
-            find: "displayNameStylesFont:_",
+            find: "roleName:t,colorString:n,colorStrings:l,name:s",
             replacement: {
-                match: /\(0,(\w+)\.jsx\)\(u\.gyj,{/,
-                replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement({...e,type:\"serverMembersList\",displayNameStylesFont:_})??(0,$1.jsx)(u.gyj,{",
-                predicate: () => settings.store.additionalServerMembersCustomization
-            }
+                match: /\(0,(\w+)\.jsx\)\((\w+)\.g,\{/,
+                replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement({...arguments[0],type:\"serverMembersList\",displayNameStylesFont:d})??(0,$1.jsx)($2.g,{"
+            },
+            predicate: () => settings.store.additionalServerMembersCustomization
         },
         {
             // Replace names in the member list.
@@ -1654,7 +1655,7 @@ export default definePlugin({
         {
             find: "data-username-with-effects",
             replacement: {
-                match: /i!==h\.G\.PLAIN/,
+                match: /i\s*!==\s*\w\.G\.PLAIN/,
                 replace: "true"
             }
         },
