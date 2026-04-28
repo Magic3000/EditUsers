@@ -1472,10 +1472,11 @@ export default definePlugin({
             },
         },
         {
-            find: "userName:eY,displayNameStyles",
+            // Replace names in DMs list.
+            find: "ImpressionNames.DM_LIST_RIGHT_CLICK_MENU_SHOWN",
             replacement: {
-                match: /\(0,(\w+)\.jsx\)\((\w+)\.A,\{userName:eY,displayNameStyles:r\?\./,
-                replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement2({...arguments[0],type:\"DmMembersList\"}) ?? (0,$1.jsx)($2.A,{userName:eY,displayNameStyles:r?."
+                match: /\(0,(\w+)\.jsx\)\((\w+)\.A,\{userName:(\i),displayNameStyles:(\i)\?\./,
+                replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement2({...arguments[0],type:\"DmMembersList\"})??(0,$1.jsx)($2.A,{userName:$3,displayNameStyles:$4?."
             },
             predicate: () => settings.store.additionalDMListMembersCustomization
         },
@@ -1517,10 +1518,16 @@ export default definePlugin({
             // Track hovering on messages to animate gradients.
             // Attach the group ID to their messages to allow animating gradients within a group.
             find: "CUSTOM_GIFT?\"\":",
-            replacement: {
-                match: /(isHovered:(\i).{0,1300})(let \i=\i.id===\i,\i=)/,
-                replace: "$1arguments[0].message.showMeYourNameGroupId=!!arguments[0].groupId?`g-${arguments[0].groupId}`:null;$self.handleHoveringMessage(arguments[0].message,$2);$3"
-            },
+            replacement: [
+                {
+                    match: /(hasHovered:\i,isHovered:(\i).{0,2000})(let \i=\i.id===\i,\i=)/,
+                    replace: "$1arguments[0].message.showMeYourNameGroupId=!!arguments[0].groupId?`g-${arguments[0].groupId}`:null;$self.handleHoveringMessage(arguments[0].message,$2);$3"
+                },
+                {
+                    match: /(keyboardModeEnabled.{0,20}&&\i,\i=\i\|\|(\i).*?)(let \i=\i.id===\i,\i=)/,
+                    replace: "$1arguments[0].message.showMeYourNameGroupId=!!arguments[0].groupId?`g-${arguments[0].groupId}`:null;$self.handleHoveringMessage(arguments[0].message,$2);$3"
+                }
+            ],
         },
         {
             // Replace names in mentions.
@@ -1547,7 +1554,8 @@ export default definePlugin({
             }
         },
         {
-            find: "roleName:t,colorString:n,colorStrings:l,name:s",
+            // Replace names in the member list.
+            find: "roleName:t,colorString:n,colorStrings:l,name:r",
             replacement: {
                 match: /\(0,(\w+)\.jsx\)\((\w+)\.g,\{/,
                 replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement({...arguments[0],type:\"serverMembersList\",displayNameStylesFont:d})??(0,$1.jsx)($2.g,{"
@@ -1576,8 +1584,8 @@ export default definePlugin({
             // Replace names in profile popouts.
             find: "shouldWrap:!0,loop:!0,inProfile:!0",
             replacement: {
-                match: /(tags:\i,)nickname:(\i)/,
-                replace: "$1showMeYourNameNickname:$2=$self.getTypingMemberListProfilesReactionsVoiceNameText({...arguments[0],type:\"profilesPopout\"})??(arguments[0].nickname)"
+                match: /\(0,(\w+)\.jsx\)\((\w+)\.A,\{/,
+                replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement({...arguments[0],type:\"profilesPopout\"})??(0,$1.jsx)($2.A,{"
             },
         },
         {
@@ -1655,8 +1663,8 @@ export default definePlugin({
         {
             find: "data-username-with-effects",
             replacement: {
-                match: /i\s*!==\s*\w\.G\.PLAIN/,
-                replace: "true"
+                match: /\[\w+\.\w+\]:\s*\w+\s*!==\s*\w+\.\w+\.PLAIN/,
+                replace: (m) => m.replace(/:\s*.*$/, ": true")
             }
         },
 

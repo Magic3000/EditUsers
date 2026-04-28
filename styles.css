@@ -112,7 +112,7 @@ span[class*="botTagCozy"][data-moreTags-darkFg="false"] > svg > path {
     content: attr(data-text) / "";
     inset: 0;
     position: absolute;
-    filter: blur(4px);
+    filter: blur(4px) brightness(1.6);
     opacity: 0;
     text-indent: 0;
     transition: opacity .1s ease-in-out;
