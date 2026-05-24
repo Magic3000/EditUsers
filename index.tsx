@@ -1555,7 +1555,7 @@ export default definePlugin({
         },
         {
             // Replace names in the member list.
-            find: "roleName:t,colorString:n,colorStrings:l,name:r",
+            find: "let{colorRoleName:",
             replacement: {
                 match: /\(0,(\w+)\.jsx\)\((\w+)\.g,\{/,
                 replace: "$self.getTypingMemberListProfilesReactionsVoiceNameElement({...arguments[0],type:\"serverMembersList\",displayNameStylesFont:d})??(0,$1.jsx)($2.g,{"
